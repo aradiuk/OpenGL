@@ -4,9 +4,35 @@
 #include <iostream>
 #include <unistd.h>
 
-double red_c = 0;
-double green_c = 0;
-double blue_c = 0;
+const char *vertexShaderSource = "#version 330 core\n"
+								 "layout (location = 0) in vec3 aPos;\n"
+								 "void main()\n"
+								 "{\n"
+								 "	gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+								 "}\0";
+
+double red_c = 0.7;
+double green_c = 0.5;
+double blue_c = 0.3;
+
+float vertices[] = {
+	-0.5, -0.5, 0.0,
+	0.5, -0.5, 0.0,
+	0.0, 0.5, 0.0
+};
+
+void verifyShaderCompilation(unsigned int vertexShader)
+{
+	int success;
+	char infoLog[512];
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (!success) {
+		glGetShaderInfoLog(vertexShader, 512, 0, infoLog);
+		std::cout << "Shader compilation failed - " << infoLog << std::endl;
+	} else {
+		std::cout << "Shader compiled successfully.\n";
+	}
+}
 
 void init()
 {
@@ -64,6 +90,18 @@ int main()
 	glViewport(0, 0, 800, 600);
 
 	loop(window);
+
+	unsigned int VBO;
+	glGenBuffers(1, &VBO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	unsigned int vertexShader;
+	vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertexShader, 1, &vertexShaderSource, 0);
+	glCompileShader(vertexShader);
+	verifyShaderCompilation(vertexShader);
+
 	glfwTerminate();
 
 	return 0;
